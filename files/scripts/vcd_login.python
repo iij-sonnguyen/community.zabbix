@@ -1,0 +1,40 @@
+import requests
+import os
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+# Disable InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+# Define the path for the credentials file
+credentials_file_path = '/etc/zabbix/zabbix_agent2.d/vCD/vcd_credentials.txt'
+current_folder = os.path.dirname(os.path.abspath(__file__))
+credentials_file_full_path = os.path.join(current_folder, credentials_file_path)
+
+# Read the credentials from the file
+with open(credentials_file_full_path) as file:
+    lines = file.read().splitlines()
+    vcd = lines[0]            # First line: VCD address
+    username = lines[1]       # Second line: username
+    password = lines[2]       # Third line: password
+    api_version = lines[3]    # Fourth line: API version
+
+# Define the URL for login
+url = f"https://{vcd}/cloudapi/1.0.0/sessions/provider"
+
+# Set headers to specify content types, including the API version
+headers = {
+    'Accept': f'*/*;version={api_version}',  # Accepting any content type with API version
+    'Content-Type': 'application/json'        # Sending JSON format
+}
+
+# Send a POST request to check login credentials
+response = requests.post(url, auth=(username, password), headers=headers, verify=False)
+
+# Check the response status
+if response.status_code == 200:
+    print("200") #Login successful!
+    data = response.json()
+
+else:
+    print("Login failed. Error:", response.status_code, response.text)
+
